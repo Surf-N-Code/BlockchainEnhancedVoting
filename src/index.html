@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Election Results</title>
+    <title>Dogpound Top Contributors voting</title>
 
     <!-- Bootstrap -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -20,7 +20,7 @@
             <p class="text-center">Loading...</p>
           </div>
           <div id="content" style="display: none;">
-            <table class="table">
+            <table class="table" id="voteResultsTable" style="display:none">
               <thead>
                 <tr>
                   <th scope="col">#</th>
@@ -33,14 +33,14 @@
             </table>
             <hr/>
             <form onSubmit="App.castVote(); return false;">
-  <div class="form-group">
-    <label for="candidatesSelect">Select Candidate</label>
-    <select class="form-control" id="candidatesSelect">
-    </select>
-  </div>
-  <button type="submit" class="btn btn-primary">Vote</button>
-  <hr />
-</form>
+              <div class="form-group">
+                <label for="candidatesSelect">Select Candidate</label>
+                <select class="form-control" id="candidatesSelect">
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary">Vote</button>
+              <hr />
+            </form>
             <p id="accountAddress" class="text-center"></p>
           </div>
         </div>
