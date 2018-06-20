@@ -8,10 +8,15 @@ contract Election {
         GettingDiscordMembers,
         StartingNewVote
     }
+    //Define categories array
+    uint8[5][] categories;
+    //category[1][UID] = 10 votes;
 
-    uint32 electionTime = 2 seconds;
-    uint electionStart = now;
+    //Candidatescount per category
+    uint8[5] candidatesCountPerCategory;
 
+    uint public electionEnd;
+    uint public electionStart;
     //Start with the voting stage
     Stages public stage = Stages.AcceptingBlindVotes;
 
@@ -41,7 +46,7 @@ contract Election {
      */
     modifier timedTransition() {
         if(stage == Stages.AcceptingBlindVotes
-            && now >= (electionStart + electionTime)) {
+            && now >= (electionEnd)) {
                 nextStage();
         }
         //All other states transition by transactions
@@ -54,7 +59,7 @@ contract Election {
     modifier onlyWhileAcceptingVotes() {
         require(stage == Stages.AcceptingBlindVotes
             && now >= electionStart
-            && now >= (electionStart + electionTime));
+            && now <= electionEnd);
         _;
     }
 
@@ -75,6 +80,8 @@ contract Election {
     function Election () public {
         addCandidate("Candidate 1");
         addCandidate("Candidate 2");
+        electionStart = now;
+        electionEnd = electionStart + 20 seconds;
     }
 
     function addCandidate (string _name) private {
@@ -82,7 +89,29 @@ contract Election {
         candidates[candidatesCount] = Candidate(candidatesCount, _name, 0);
     }
 
-    function vote (uint _candidateId)
+    function vote (uint[] _candidateIds)
+        public
+        timedTransition
+        onlyWhileAcceptingVotes {
+        // require voter hasn't voted before
+        require(!voters[msg.sender]);
+
+        // require valid candidates
+        for (i=0;i<_candidateIds.length) {
+            require(_candidateIds[i] > 0 && _candidateIds[i] <= candidatesCount);
+        }
+
+        // record that voter has voted
+        voters[msg.sender] = true;
+
+        // update candidate vote Count
+        candidates[_candidateId].voteCount ++;
+
+        // trigger voted event
+        votedEvent(_candidateId);
+    }
+
+    /* function vote (uint _candidateId)
         public
         timedTransition
         onlyWhileAcceptingVotes {
@@ -100,7 +129,7 @@ contract Election {
 
         // trigger voted event
         votedEvent(_candidateId);
-    }
+    } */
 
     event votedEvent (
         uint indexed _candidateId
@@ -111,7 +140,15 @@ contract Election {
      * @return Whether voting period has elapsed
      */
     function hasClosed() public view returns (bool) {
-        return now > (electionStart + electionTime);
+        return now >= (electionEnd);
+    }
+
+    function returnNow() public view returns (uint) {
+        return now;
+    }
+
+    function returnEndTime() public view returns (uint) {
+        return (electionEnd);
     }
 
     //@TODO: only owner einfügen

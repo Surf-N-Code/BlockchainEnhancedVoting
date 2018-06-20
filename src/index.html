@@ -8,18 +8,22 @@
 
     <!-- Bootstrap -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
+
   </head>
   <body>
     <div class="container" style="width: 650px;">
       <div class="row">
         <div class="col-lg-12">
-          <h1 class="text-center">Election Results</h1>
+          <h1 class="text-center">Dogpound Top Contributors voting</h1>
           <hr/>
           <br/>
           <div id="loader">
             <p class="text-center">Loading...</p>
           </div>
+            <div class="alert alert-success" style="display: none"></div>
+            <div class="alert alert-danger" style="display: none"></div>
           <div id="content" style="display: none;">
+              <div id="resultsBlock" style="display: none;"></div>
             <table class="table" id="voteResultsTable" style="display:none">
               <thead>
                 <tr>
@@ -34,7 +38,7 @@
             <hr/>
             <form onSubmit="App.castVote(); return false;">
               <div class="form-group">
-                <label for="candidatesSelect">Select Candidate</label>
+                <label for="candidatesSelect">Select Contributor</label>
                 <select class="form-control" id="candidatesSelect">
                 </select>
               </div>

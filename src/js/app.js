@@ -32,51 +32,48 @@ App = {
         console.error(err);
       });
   },
-
-  toggleVotingResults: function(refreshIntervalId) {
-      var resultTable = $('#voteResultsTable');
+  toggleVotingResults: function() {
       App.contracts.Election.deployed().then(function(instance) {
-        return instance.hasClosed();
+          return instance.hasClosed();
       }).then(function(hasClosed) {
-          if(hasClosed) {
-              console.log("has closed: "+hasClosed);
-              resultTable.show();
-
-              App.contracts.Election.deployed().then(function(instance) {
-                electionInstance = instance;
-                return electionInstance.candidatesCount();
-              }).then(function(candidatesCount) {
-                var candidatesResults = $("#candidatesResults");
-                candidatesResults.empty();
-
-                var candidatesSelect = $('#candidatesSelect');
-                candidatesSelect.empty();
-
-                for (var i = 1; i <= candidatesCount; i++) {
-                  electionInstance.candidates(i).then(function(candidate) {
-                    var id = candidate[0];
-                    var name = candidate[1];
-                    var voteCount = candidate[2];
-
-                    // Render candidate Result
-                    var candidateTemplate = "<tr><th>" + id + "</th><td>" + name + "</td><td>" + voteCount + "</td></tr>"
-                    candidatesResults.append(candidateTemplate);
-
-                    // Render candidate ballot option
-                    var candidateOption = "<option value='" + id + "' >" + name + "</ option>"
-                    candidatesSelect.append(candidateOption);
-                  });
-                }
-                return electionInstance.voters(App.account);
-              })
-              console.log("should clear interval");
-              clearInterval(refreshIntervalId);
-          } else {
-              console.log("has closed: "+hasClosed);
-              resultTable.hide();
-          }
+          console.log(hasClosed);
       });
   },
+  // toggleVotingResults: function() {
+  //     var resultTable = $('#voteResultsTable');
+  //     App.contracts.Election.deployed().then(function(instance) {
+  //       return instance.hasClosed();
+  //     }).then(function(hasClosed) {
+  //         if(hasClosed) {
+  //             console.log("has closed");
+  //             resultTable.show();
+  //
+  //             App.contracts.Election.deployed().then(function(instance) {
+  //               electionInstance = instance;
+  //               return electionInstance.candidatesCount();
+  //             }).then(function(candidatesCount) {
+  //               var candidatesResults = $("#candidatesResults");
+  //               candidatesResults.empty();
+  //
+  //               for (var i = 1; i <= candidatesCount; i++) {
+  //                 electionInstance.candidates(i).then(function(candidate) {
+  //                   var id = candidate[0];
+  //                   var name = candidate[1];
+  //                   var voteCount = candidate[2];
+  //
+  //                   // Render candidate Result
+  //                   var candidateTemplate = "<tr><th>" + id + "</th><td>" + name + "</td><td>" + voteCount + "</td></tr>"
+  //                   candidatesResults.append(candidateTemplate);
+  //                 });
+  //               }
+  //           });
+  //             console.log("should clear interval");
+  //         } else {
+  //             console.log("open");
+  //             resultTable.hide();
+  //         }
+  //     });
+  // },
 
   listenForEvents: function() {
   App.contracts.Election.deployed().then(function(instance) {
@@ -99,10 +96,11 @@ App = {
       App.contracts.Election.setProvider(App.web3Provider);
 
       App.listenForEvents();
+      App.render();
       var refreshIntervalId = setInterval(function(){
           App.toggleVotingResults(refreshIntervalId);
-      }, 1000);
-      return App.render();
+      }, 5000);
+      return;
     });
   },
 
@@ -121,23 +119,101 @@ App = {
         $("#accountAddress").html("Your Account: " + account);
       }
     });
-
-
-
-    // Load contract data
-  App.contracts.Election.deployed().then(function(instance) {
-    electionInstance = instance;
-    return electionInstance.candidatesCount();
-  }).then(function(hasVoted) {
-    // Do not allow a user to vote
-    if(hasVoted) {
-      $('form').hide();
-    }
     loader.hide();
     content.show();
-  }).catch(function(error) {
-    console.warn(error);
-  });
+
+    App.contracts.Election.deployed().then(function(instance) {
+      let candidates;
+      electionInstance = instance;
+      return electionInstance.candidatesCount();
+    }).then(function(candidatesCnt) {
+        candidatesCount = candidatesCnt;
+      return electionInstance.hasClosed();
+    }).then(function(hasClosed) {
+        if(hasClosed) {
+            let resultTable = $('#voteResultsTable');
+            console.log("Contract closed");
+            resultTable.show();
+            var candidatesResults = $("#candidatesResults");
+            candidatesResults.empty();
+            for (var i = 1; i <= candidatesCount; i++) {
+                electionInstance.candidates(i).then(function(candidate) {
+                    var id = candidate[0];
+                    var name = candidate[1];
+                    var voteCount = candidate[2];
+                    // Render results
+                    var candidateTemplate = "<tr><th>" + id + "</th><td>" + name + "</td><td>" + voteCount + "</td></tr>"
+                    candidatesResults.append(candidateTemplate);
+                });
+            }
+        } else {
+            /**
+             * Just to be safe, we will remove all result rows
+             * if the contract is still active
+             */
+            console.log("Contract open");
+            $("#voteResultsTable tr").remove();
+        }
+        return electionInstance.voters(App.account);
+    }).then(function(hasVoted) {
+        console.log("has voted:" + hasVoted);
+        console.log(hasVoted);
+        // Do not allow a user to vote twice
+        if(hasVoted) {
+            console.log("user with accont "+ App.account +" already voted");
+            $('form').hide();
+            $('.alert-success').show().html("Thanks for your vote!");
+        } else {
+            var candidatesSelect = $('#candidatesSelect');
+            candidatesSelect.empty();
+            for (var i = 1; i <= candidatesCount; i++) {
+                electionInstance.candidates(i).then(function(candidate) {
+                    var id = candidate[0];
+                    var name = candidate[1];
+                    var voteCount = candidate[2];
+                    // Render candidate ballot option
+                    var candidateOption = "<option value='" + id + "' >" + name + "</ option>"
+                    candidatesSelect.append(candidateOption);
+                });
+            }
+        }
+        $("#loader").hide();
+        $("#content").show();
+    }).catch(function(error) {
+        console.warn(error);
+    });
+    //
+    // App.contracts.Election.deployed().then(function(instance) {
+    //   electionInstance = instance;
+    //   return electionInstance.candidatesCount();
+    // }).then(function(candidatesCount) {
+    //
+    //   var candidatesSelect = $('#candidatesSelect');
+    //   candidatesSelect.empty();
+    //
+    //   for (var i = 1; i <= candidatesCount; i++) {
+    //     electionInstance.candidates(i).then(function(candidate) {
+    //       var id = candidate[0];
+    //       var name = candidate[1];
+    //       // Render candidate ballot option
+    //       var candidateOption = "<option value='" + id + "' >" + name + "</ option>"
+    //       candidatesSelect.append(candidateOption);
+    //     });
+    //   }
+    //   return electionInstance.voters(App.account);
+    // }).then(function(hasVoted) {
+    //     console.log("has voted:" + hasVoted);
+    //     console.log(hasVoted);
+    //   // Do not allow a user to vote twice
+    //   if(hasVoted) {
+    //       console.log("user with accont "+ App.account +" already voted");
+    //     $('form').hide();
+    //   }
+    //   $("#loader").hide();
+    //   $("#content").show();
+    // }).catch(function(error) {
+    //   console.warn(error);
+    // });
 
 }
 
