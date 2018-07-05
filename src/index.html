@@ -17,24 +17,33 @@
           <h1 class="text-center">Dogpound Top Contributors voting</h1>
           <hr/>
           <br/>
-          <div id="loader">
-            <p class="text-center">Loading...</p>
-          </div>
+
+          <div id="content" style="display: none;">
+
+            <div id="loader">
+                <p class="text-center">Loading...</p>
+            </div>
+
             <div class="alert alert-success" style="display: none"></div>
             <div class="alert alert-danger" style="display: none"></div>
-          <div id="content" style="display: none;">
-              <div id="resultsBlock" style="display: none;"></div>
-            <table class="table" id="voteResultsTable" style="display:none">
-              <thead>
-                <tr>
-                  <th scope="col">#</th>
-                  <th scope="col">Name</th>
-                  <th scope="col">Votes</th>
-                </tr>
-              </thead>
-              <tbody id="candidatesResults">
-              </tbody>
-            </table>
+            <div id="resultsBlock" style="display: none">
+                <div class="categoryResult" id="cat0Result">
+                    <h3 class='text-center category' categoryId=0>1. Overall best teacher</h1>
+                     <table class='table'>
+                      <thead>
+                        <tr>
+                          <th scope='col'>#</th>
+                          <th scope='col'>Name</th>
+                          <th scope='col'>Votes</th>
+                        </tr>
+                      </thead>
+                      <tbody id='candidatesResults0'>
+                      </tbody>
+                    </table>
+                </div>
+            </div>
+
+
             <hr/>
             <form onSubmit="App.castVote(); return false;">
               <div class="form-group">
@@ -47,6 +56,7 @@
             </form>
             <p id="accountAddress" class="text-center"></p>
           </div>
+          <div id="test"></div>
         </div>
       </div>
     </div>
