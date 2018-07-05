@@ -28,8 +28,8 @@ contract Election {
     mapping(uint => Categories) public categoryStructs;
     //Read/write candidates
     mapping(uint => Candidate) public candidates;
-    //Store accounts that have voted
-    mapping(address => bool) public voters;
+    //Store Candidates Count
+    uint public candidatesCount;
     //Election start and Enddates initialized in constructor
     uint public electionEnd;
     uint public electionStart;
@@ -40,7 +40,7 @@ contract Election {
     //Owner address
     address public owner = msg.sender;
 
-    modifier onlyByMe(address _account)
+    modifier onlyBy(address _account)
     {
         require(
             msg.sender == _account,
@@ -85,6 +85,7 @@ contract Election {
         require(!voters[msg.sender]);
         //Make sure candidate is valid
         require(_candidateId > 0 && _candidateId <= candidatesCount);
+        //Candidate list with votes > 0
         if(categoryStructs[_categoryId].candidateStructs[_candidateId].voteCount == 0) {
             categoryStructs[_categoryId].candidateList.push(_candidateId);
         }
@@ -96,8 +97,7 @@ contract Election {
         return true;
     }
 
-    //Store Candidates Count
-    uint public candidatesCount;
+
 
     function Election () public {
         /* for(uint8 i=0; i) */
@@ -140,12 +140,12 @@ contract Election {
 
         //Set the voting period
         electionStart = now;
-        electionEnd = electionStart + electionDuration days;
+        electionEnd = electionStart + electionDuration * 1 days;
     }
 
-    function setTimeForElectionInDays()
-        external (uint8 _time)
-        onlyByMe
+    function setTimeForElectionInDays(uint8 _time)
+        external
+        onlyBy(owner)
     {
         electionDuration = _time;
     }
@@ -204,7 +204,7 @@ contract Election {
     }
 
     function newCategory(uint8 _categoryId, string _name)
-        onlyByMe
+        onlyBy(owner)
         returns(bool success)
     {
         // not checking for duplicates
@@ -216,15 +216,15 @@ contract Election {
 
     function addCandidate (uint8 _candidateId, string _name, uint8 _categoryId)
         public
-        onlyByMe
+        onlyBy(owner)
     {
         bool isCandidate = false;
         for(uint i; i<8; i++) {
-            if(categoryStructs[i].candidateStructs[_candidateId]) {
+            if(categoryStructs[i].candidateStructs[_candidateId].id != 0) {
                 isCandidate = true;
             }
         }
-        if(isCanddiate) {
+        if(isCandidate) {
             candidatesCount++;
         }
         categoryStructs[_categoryId].candidateStructs[_candidateId] = Candidate(_candidateId, 0, _name);
